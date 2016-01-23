@@ -1,0 +1,82 @@
+'''
+GNS3 install script
+  by John Lawrence
+  Last updated:  2016.01.23
+  Changes:  Created github file -- migrated from Google Drive
+  
+This script will always grab the newest version of GNS3
+'''
+
+sudo apt-get -y update && sudo apt-get -y install python3-pip
+
+# Uninstall any previous versions
+sudo pip3 uninstall -y gns3-gui
+sudo pip3 uninstall -y gns3-server
+sudo rm -rdf ~/gns3_install
+
+# Install dependencies for Python Installer
+sudo apt-get -y install idle3 python3 tcl8.6 tk8.6 tix python-tk-dbg python3-tk-dbg python3-pip python3-zmq python3-tornado python3-netifaces python3-pyqt4 python3-ws4py python2.7 python-setuptools python3-setuptools
+
+# Install dependencies for Dynamips
+sudo apt-get -y install cmake git libelf-dev uuid-dev libpcap0.8-dev
+
+# Grab from Repositories
+cd ~
+mkdir ~/gns3_install
+wget -O ~/gns3_install/server_master.zip https://github.com/GNS3/gns3-server/archive/master.zip
+wget -O ~/gns3_install/client_master.zip https://github.com/GNS3/gns3-gui/archive/master.zip
+
+# Unpack
+cd ~/gns3_install
+unzip ~/gns3_install/client_master.zip
+unzip ~/gns3_install/server_master.zip
+#Create symlinks
+rm ~/gns3_install/client
+rm ~/gns3_install/server
+
+ln -s ~/gns3_install/gns3-gui-master ~/gns3_install/client
+ln -s ~/gns3_install/gns3-server-master ~/gns3_install/server
+
+# Install Server
+cd ~/gns3_install/server
+sudo python3 setup.py install
+
+# Install Client
+cd ~/gns3_install/client
+sudo python3 setup.py install
+
+# Install VPCs (64-bit OS)
+mkdir ~/gns3_install/vpcs
+cd ~/gns3_install/vpcs
+wget http://sourceforge.net/projects/vpcs/files/0.8/vpcs_0.8b_Linux64
+chmod 774 vpcs_0.8b_Linux64
+cd ~
+
+# Tune Loopback performance on host machine to avoid collision crashes
+## From: http://www.routereflector.com/2012/09/l2-iou-high-cpu-usage/
+
+
+
+On Linux the following line on “/etc/sysctl.conf” file, can help:
+# Mitigate %AMDP2_FE-6-EXCESSCOLL iou error
+net.unix.max_dgram_qlen = 2000000
+
+
+
+IOU Config
+!! IOU license keygen will not work if the hostname has dashes.
+
+# Install dependencies
+sudo apt-get -y update && sudo apt-get -y install bbe libssl1.0.0 
+sudo ln -s /lib/i386-linux-gnu/libcrypto.so.1.0.0 /usr/lib/libcrypto.so.4
+
+# Grab Needed Files
+cd ~
+mkdir ~/gns3_install/iou
+cd ~/gns3_install/iou
+wget https://dl.dropboxusercontent.com/u/55310967/NeededFiles.zip
+unzip NeededFiles.zip
+sudo ./sethostid.sh
+sudo cp iouyap /usr/local/bin/iouyap
+cp iourc.txt ~/.iourc
+
